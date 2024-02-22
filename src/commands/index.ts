@@ -1,11 +1,11 @@
 import type { CommandInteraction, SlashCommandBuilder } from 'discord.js';
 
 import { PING } from './ping';
-import { PONG } from './randomSound';
+import { RUSSIAN } from './russian';
 
 export type Command = {
     data: SlashCommandBuilder;
     execute: (interaction: CommandInteraction) => Promise<void>;
 };
 
-export const COMMANDS: Array<Command> = [PING,PONG];
+export const COMMANDS: Array<Command> = [PING,RUSSIAN];

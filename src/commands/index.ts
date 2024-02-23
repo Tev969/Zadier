@@ -7,7 +7,7 @@ type SlashCommandDescriptor = SlashCommandBuilder | Omit<SlashCommandBuilder, 'a
 
 export type Command = {
     data: SlashCommandDescriptor;
-    execute: (interaction: CommandInteraction) => Promise<void>;
+    execute: (interaction: CommandInteraction) => Promise<unknown>;
 };
 
 export const COMMANDS: Array<Command> = [PING, RUSSIAN];

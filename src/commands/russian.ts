@@ -44,16 +44,15 @@ export const RUSSIAN: Command = {
             const botNumber = Math.floor(Math.random() * 6) + 1;
             const selectedValue = interaction.values[0];
             if (!selectedValue) {
-                throw 'undefined';
+                throw 'error undefine';
             }
-            if (botNumber === +selectedValue) {
-                if (interaction.member) {
-                    if ('user' in interaction.member) {
-                        await (interaction.member as GuildMember).timeout(100_000);
-                    }
-                }
+            if (botNumber !== +selectedValue) {
+                throw 'error';
             }
-
+            if (!interaction.member || !('user' in interaction.member)) {
+                throw 'error';
+            }
+            await (interaction.member as GuildMember).timeout(100_000);
             await interaction.reply(`You selected ${selectedValue} and bot selected ${botNumber}`);
             collector?.stop(); // Arrêter le collecteur après avoir récupéré la valeur
         });

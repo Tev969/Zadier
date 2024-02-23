@@ -1,14 +1,6 @@
-import { Command } from '@commands';
-import {
-    SlashCommandBuilder,
-    CommandInteraction,
-    StringSelectMenuBuilder,
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    ComponentType,
-    ButtonInteraction,
-} from 'discord.js';
+import type { Command } from '@commands';
+import type { CommandInteraction, GuildMember, StringSelectMenuInteraction } from 'discord.js';
+import { ActionRowBuilder, ComponentType, SlashCommandBuilder, StringSelectMenuBuilder } from 'discord.js';
 
 export const RUSSIAN: Command = {
     data: new SlashCommandBuilder()
@@ -17,33 +9,6 @@ export const RUSSIAN: Command = {
 
     async execute(interaction: CommandInteraction) {
         const { user } = interaction;
-
-        const accept = new ButtonBuilder()
-            .setCustomId('confirm')
-            .setLabel('Prendre le risque.')
-            .setStyle(ButtonStyle.Danger);
-
-        const decline = new ButtonBuilder()
-            .setCustomId('decline')
-            .setLabel('Bah alors ?')
-            .setStyle(ButtonStyle.Secondary);
-
-        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(accept, decline);
-
-        await interaction.reply({
-            content: `hello  for ${user}`,
-            components: [row],
-            ephemeral: false,
-        });
-
-        // Filtre pour collecter les interactions du bouton "confirm" émis par l'utilisateur
-        const filter = (i:ButtonInteraction) => i.customId === 'confirm' && i.user.id === interaction.user.id;
-        const collector = interaction.channel.createMessageComponentCollector({ componentType: ComponentType.Button , max: 1, filter, time: 20000 });
-        // On collecte tout les buttons , on les envoie à filter , si c'est true on envoie a collector.on , si false poubelle
-
-        collector.on('collect', () => {
-            // Faire quelque chose lorsque le bouton "confirm" est cliqué
-        });
 
         // Création du menu déroulant avec les options de chiffres
         const numbers = [1, 2, 3, 4, 5, 6];
@@ -60,9 +25,37 @@ export const RUSSIAN: Command = {
 
         const numberRow = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu);
 
-        interaction.followUp({
-            content: 'Please select a number:',
+        await interaction.reply({
+            content: 'Please select a number :',
             components: [numberRow],
+            ephemeral: false,
+        });
+
+        const filter = (interaction: StringSelectMenuInteraction): boolean =>
+            interaction.customId === 'menu' && interaction.user.id === user.id;
+        const collector = interaction.channel?.createMessageComponentCollector({
+            componentType: ComponentType.SelectMenu,
+            max: 1,
+            filter,
+            time: 20000,
+        });
+
+        collector?.on('collect', async (interaction: StringSelectMenuInteraction) => {
+            const botNumber = Math.floor(Math.random() * 6) + 1;
+            const selectedValue = interaction.values[0];
+            if (!selectedValue) {
+                throw 'undefined';
+            }
+            if (botNumber === +selectedValue) {
+                if (interaction.member) {
+                    if ('user' in interaction.member) {
+                        await (interaction.member as GuildMember).timeout(100_000);
+                    }
+                }
+            }
+
+            await interaction.reply(`You selected ${selectedValue} and bot selected ${botNumber}`);
+            collector?.stop(); // Arrêter le collecteur après avoir récupéré la valeur
         });
     },
 };

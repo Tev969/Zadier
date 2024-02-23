@@ -1,60 +1,38 @@
 import type { Command } from '@commands';
-import type { CommandInteraction, GuildMember, StringSelectMenuInteraction } from 'discord.js';
-import { ActionRowBuilder, ComponentType, SlashCommandBuilder, StringSelectMenuBuilder } from 'discord.js';
+import type { CommandInteraction, GuildMember } from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
 
+/**
+ * @command     - russian_roulette
+ * @description - Try a russian roulette and get muted if you lose ? Do you have balls ? @_@
+ * @permission  - None
+ */
 export const RUSSIAN: Command = {
     data: new SlashCommandBuilder()
-        .setName('russianroulette')
-        .setDescription('Try a russian roulette and get mute if you lose ? Do you have balls ? @_@ '),
-
+        .setName('russian_roulette')
+        .setDescription('Try a russian roulette and get muted if you lose ? Do you have balls ? @_@ ')
+        .addIntegerOption((option) =>
+            option
+                .setName('number')
+                .setDescription('choice between one and six')
+                .setRequired(true)
+                .setMaxValue(6)
+                .setMinValue(1),
+        ),
     async execute(interaction: CommandInteraction) {
-        const { user } = interaction;
+        const choice = interaction.options.get('number')?.value as number;
 
-        // Création du menu déroulant avec les options de chiffres
-        const numbers = [1, 2, 3, 4, 5, 6];
-        const numberOptions = numbers.map((num) => ({
-            label: num.toString(),
-            value: num.toString(),
-        }));
+        const botChoice = Math.floor(Math.random() * 6) + 1;
 
-        const selectMenu = new StringSelectMenuBuilder()
-            .setCustomId('menu')
-            .setPlaceholder('Prend un chiffre')
-            .setMaxValues(6)
-            .addOptions(numberOptions);
-
-        const numberRow = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu);
-
-        await interaction.reply({
-            content: 'Please select a number :',
-            components: [numberRow],
-            ephemeral: false,
-        });
-
-        const filter = (interaction: StringSelectMenuInteraction): boolean =>
-            interaction.customId === 'menu' && interaction.user.id === user.id;
-        const collector = interaction.channel?.createMessageComponentCollector({
-            componentType: ComponentType.SelectMenu,
-            max: 1,
-            filter,
-            time: 20000,
-        });
-
-        collector?.on('collect', async (interaction: StringSelectMenuInteraction) => {
-            const botNumber = Math.floor(Math.random() * 6) + 1;
-            const selectedValue = interaction.values[0];
-            if (!selectedValue) {
-                throw 'error undefine';
-            }
-            if (botNumber !== +selectedValue) {
-                throw 'error';
-            }
-            if (!interaction.member || !('user' in interaction.member)) {
-                throw 'error';
-            }
-            await (interaction.member as GuildMember).timeout(100_000);
-            await interaction.reply(`You selected ${selectedValue} and bot selected ${botNumber}`);
-            collector?.stop(); // Arrêter le collecteur après avoir récupéré la valeur
-        });
+        if (choice === botChoice) {
+            await interaction.reply({
+                content: 'en voila un chanceux',
+            });
+        } else {
+            await (interaction.member as GuildMember).timeout(120_000);
+            await interaction.reply({
+                content: `EH BAM 2 MINUTES DANS TA GUEULE IL FALLAIT DIRE LE CHIFFRE ${botChoice} IDIOT`,
+            });
+        }
     },
 };
